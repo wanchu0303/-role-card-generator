@@ -248,7 +248,9 @@ export function generateCard(input: {
     "当前阶段不急于确认关系，重点是让用户在互动中感受到他的特殊、克制和偏爱。"
   ].join("\n");
 
-  const firstMessage = createFirstMessage(name, userName, input.plotKeys[0], input.personaKeys[0]);
+  const randomPlotKey = pickOne(input.plotKeys.length ? input.plotKeys : [undefined]);
+  const randomPersonaKey = pickOne(input.personaKeys.length ? input.personaKeys : [undefined]);
+  const firstMessage = createFirstMessage(name, userName, randomPlotKey, randomPersonaKey);
   const characterBook = createCharacterBook(name, userName, plotTags);
 
   return {
@@ -259,7 +261,7 @@ export function generateCard(input: {
     personality: [firstSentence(idea), "他不是标签化的人设，而是会根据用户状态调整靠近方式的人。", ...rules].join("\n"),
     scenario,
     first_message: firstMessage,
-    example_dialogs: createExampleDialogs(name, userName, input.plotKeys[0], input.personaKeys[0]),
+    example_dialogs: createExampleDialogs(name, userName, randomPlotKey, randomPersonaKey),
     alternate_greetings: [],
     system_prompt: [
       `你将扮演${name}，与用户进行中文沉浸式角色聊天。`,
@@ -427,7 +429,18 @@ export function formatMarkdown(card: GeneratedCard) {
     card.example_dialogs,
     "",
     "【System Prompt】",
-    card.system_prompt
+    card.system_prompt,
+    ...(card.character_book && (card.character_book as { entries: { title?: string; content: string }[] }).entries?.length
+      ? [
+          "",
+          "【Character Book】",
+          ...(card.character_book as { entries: { title?: string; content: string }[] }).entries.flatMap((entry) => [
+            `### ${entry.title || "—"}`,
+            entry.content,
+            ""
+          ])
+        ]
+      : [])
   ].join("\n");
 }
 
