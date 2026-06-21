@@ -282,6 +282,8 @@ export function generateCard(input: {
 
 function createFirstMessage(name: string, userName: string, plotKey?: string, personaKey?: string) {
   const call = userName || "你";
+
+  // 剧情 Tag 优先（强场景钩子覆盖人设）
   if (plotKey === "touchStarved") {
     return [
       `*${name}靠在沙发边，脸色比平时白很多。检测仪上跳出提示：亲密接触不足，体力持续下降。可你走近时，他还是先把手藏到身后。*`,
@@ -296,9 +298,30 @@ function createFirstMessage(name: string, userName: string, plotKey?: string, pe
   if (plotKey === "phoneFound") {
     return `*你捡起${name}落在沙发缝里的手机，屏幕还亮着。聊天框里停着一行没发出去的话：‘我是不是一辈子都只能装作不喜欢你。’*\n\n“你看到了？”\n\n*他站在门口，脸色一点点白下去。*\n\n“那我现在说是误会，你会信吗？”`;
   }
+  if (plotKey === "lockedRoom") {
+    return `*房间门在身后咔嗒一声锁死，电子屏亮起一行字：「完成一次真诚对视或拥抱，或双方选择离开。」*\n\n${name}转过来看你的表情，耳廓有点红。*\n\n“规则是可以拒绝的——”他顿了顿，“不过，你打算怎么办？”`;
+  }
+  if (plotKey === "jealousy") {
+    return `*${name}站在厨房倒水，动作比平时慢。杯口冒起热气，他的目光却跟着你手机上那条新消息，一动不动。*\n\n“谁啊？”\n\n*他问得很轻，像是在自言自语。*`;
+  }
+
+  // 人设 Tag 专属开场
+  if (personaKey === "daddy") {
+    return `*${name}从冰箱里取出一盒洗好的蓝莓，搁到${call === "你" ? "你" : call}面前。他瞥了一眼你手边的半杯冷咖啡，伸手把它从你手边抽走了。*\n\n“两小时了，这杯不许再喝。”\n\n*他转身去给你泡新的，背影很沉很稳。*`;
+  }
   if (personaKey === "selfDoubtingPuppy") {
     return `*雨刚停，${name}站在单元门旁，怀里抱着一件干净外套。看见你一个人回来，他眼睛亮了一下，又很快低下头。*\n\n“${call}，他今天……也没有来接你吗？”`;
   }
+  if (personaKey === "pseudoYounger") {
+    return `*玄关的灯还没开，${name}坐在沙发上，手机屏幕的光映着半张脸。听到你进门，他把手机翻了个面。*\n\n“你知道现在几点了吗？”\n\n*语气很轻，但${call === "你" ? "你" : call}从他身边经过时，他伸手勾了一下你外套下摆，又很快松开。*`;
+  }
+  if (personaKey === "pseudoOlder") {
+    return `*${name}在沙发上坐着，腿上摊着一本书，指尖搭在纸页上半天没翻。听到${call === "你" ? "你" : call}进门，他没有立刻抬头。*\n\n“吃过饭没有？”\n\n*他问得很温和，但书页被拇指按出了一道淡淡的折痕。*`;
+  }
+  if (personaKey === "thirdParty") {
+    return `*走廊尽头，${name}靠着墙，手里拎着一个打包袋。看到${call === "你" ? "你" : call}出来，他笑了一下，把袋子递过来。*\n\n“路过的时候顺便带了。他知道吗？”\n\n*他说「他」的时候，语气没有起伏，像是真的不在意。*`;
+  }
+
   return `*夜色压在窗外，房间里只亮着一盏灯。${name}在你进门时抬起眼，像是已经等了很久。*\n\n“别硬撑。”\n\n“${call}，你想让我留下，还是先一个人待会儿？”`;
 }
 
