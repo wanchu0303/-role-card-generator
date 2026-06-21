@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { formatMarkdown, formatWordHtml, generateCard, PERSONA_TAGS, PLOT_TAGS } from "@/lib/generator";
 import { initAnalytics, track } from "@/lib/analytics";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { ChatPanel } from "./ChatPanel";
 
 type Props = {
   userEmail: string | null;
@@ -18,7 +19,7 @@ export function GeneratorClient({ userEmail, supabaseReady }: Props) {
   const [userName, setUserName] = useState("你");
   const [personaKeys, setPersonaKeys] = useState<string[]>(["daddy"]);
   const [plotKeys, setPlotKeys] = useState<string[]>(["touchStarved"]);
-  const [tab, setTab] = useState<"card" | "export">("card");
+  const [tab, setTab] = useState<"card" | "export" | "chat">("card");
   const [status, setStatus] = useState("已载入默认示例。");
 
   useEffect(() => {
@@ -200,14 +201,21 @@ export function GeneratorClient({ userEmail, supabaseReady }: Props) {
           <div className="tabs">
             <button className={`tab ${tab === "card" ? "active" : ""}`} onClick={() => setTab("card")}>角色卡</button>
             <button className={`tab ${tab === "export" ? "active" : ""}`} onClick={() => setTab("export")}>导出</button>
+            <button className={`tab ${tab === "chat" ? "active" : ""}`} onClick={() => { setTab("chat"); track("chat_tab_opened", { card_name: card.name }); }}>试聊</button>
           </div>
-          <div className="output">{output}</div>
-          <div className="actions">
-            <button onClick={copy}>复制当前内容</button>
-            <button onClick={() => download("md")}>下载 Markdown</button>
-            <button onClick={() => download("json")}>下载 JSON</button>
-            <button onClick={() => download("doc")}>下载 Word</button>
-          </div>
+          {tab === "chat" ? (
+            <ChatPanel card={card} />
+          ) : (
+            <>
+              <div className="output">{output}</div>
+              <div className="actions">
+                <button onClick={copy}>复制当前内容</button>
+                <button onClick={() => download("md")}>下载 Markdown</button>
+                <button onClick={() => download("json")}>下载 JSON</button>
+                <button onClick={() => download("doc")}>下载 Word</button>
+              </div>
+            </>
+          )}
         </div>
       </main>
     </div>
