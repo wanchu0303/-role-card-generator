@@ -59,7 +59,7 @@ export default function LoginPage() {
     }
 
     track("signup_success", {});
-    setMessage("注册成功！请检查邮箱，点击确认链接后即可登录。");
+    setMessage("注册成功！请查收确认邮件（可能需 1-2 分钟，检查垃圾箱），点击链接后即可登录。");
   }
 
   return (
