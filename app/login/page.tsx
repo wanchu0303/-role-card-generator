@@ -59,7 +59,7 @@ export default function LoginPage() {
     }
 
     track("signup_success", {});
-    setMessage("注册成功。如果 Supabase 要求邮箱确认，请先去邮箱点确认链接；否则可以直接登录。");
+    setMessage("注册成功！请检查邮箱，点击确认链接后即可登录。");
   }
 
   return (
