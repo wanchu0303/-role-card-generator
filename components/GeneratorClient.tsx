@@ -6,6 +6,7 @@ import { formatMarkdown, formatWordHtml, generateCard, PERSONA_TAGS, PLOT_TAGS }
 import { initAnalytics, track } from "@/lib/analytics";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { ChatPanel } from "./ChatPanel";
+import { KitchenAnimation } from "./KitchenAnimation";
 
 type Props = {
   userEmail: string | null;
@@ -21,6 +22,7 @@ export function GeneratorClient({ userEmail, supabaseReady }: Props) {
   const [plotKeys, setPlotKeys] = useState<string[]>(["touchStarved"]);
   const [tab, setTab] = useState<"card" | "export" | "chat">("card");
   const [status, setStatus] = useState("已载入默认示例。");
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     initAnalytics();
@@ -51,12 +53,16 @@ export function GeneratorClient({ userEmail, supabaseReady }: Props) {
       plot_tags: plotKeys,
       input_length: idea.length
     });
-    setStatus(`已生成：${card.name}`);
-    track("generate_success", {
-      persona_tags: personaKeys,
-      plot_tags: plotKeys,
-      output_length: JSON.stringify(card).length
-    });
+    setGenerating(true);
+    setTimeout(() => {
+      setGenerating(false);
+      setStatus(`已生成：${card.name}`);
+      track("generate_success", {
+        persona_tags: personaKeys,
+        plot_tags: plotKeys,
+        output_length: JSON.stringify(card).length
+      });
+    }, 2200);
   }
 
   async function saveCard() {
@@ -116,92 +122,129 @@ export function GeneratorClient({ userEmail, supabaseReady }: Props) {
         <div className="topbar">
           <h1>中文角色卡生成器</h1>
         </div>
-        <p className="subtle">
-          {!supabaseReady ? "当前是未接 Supabase 的本地预览模式，可以生成和下载，暂不能登录保存。" : currentEmail ? `已登录：${currentEmail}` : "未登录也能生成，登录后可保存。"}
-          {" "}
-          {supabaseReady ? currentEmail ? (
+
+        <div className="user-info">
+          {!supabaseReady ? (
+            <span className="badge badge-accent">本地预览</span>
+          ) : currentEmail ? (
             <>
-              <Link href="/my-cards">我的角色卡</Link>
-              {" "}
-              <button onClick={signOut} style={{ minHeight: 0, padding: "4px 8px" }}>退出</button>
+              <span className="badge badge-success">已登录</span>
+              <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>{currentEmail}</span>
             </>
-          ) : <Link href="/login">登录</Link> : null}
-        </p>
-        <p className="subtle">支持导出：JSON / Markdown / Word</p>
+          ) : (
+            <span className="badge badge-accent">未登录</span>
+          )}
+          <span style={{ display: "flex", gap: 8 }}>
+            {supabaseReady && !currentEmail && <Link href="/login">登录</Link>}
+            {supabaseReady && currentEmail && <Link href="/my-cards">我的角色卡</Link>}
+            {supabaseReady && currentEmail && <button className="ghost" style={{ padding: "4px 10px", minHeight: 0, fontSize: "0.78rem" }} onClick={signOut}>退出</button>}
+          </span>
+        </div>
 
         <div className="section">
           <div className="field">
             <label>自定义人设</label>
-            <textarea value={idea} onChange={(event) => setIdea(event.target.value)} />
+            <textarea
+              value={idea}
+              onChange={(event) => setIdea(event.target.value)}
+              placeholder="描述角色的性格、背景、特点…"
+            />
           </div>
           <div className="field">
             <label>角色名</label>
             <input value={name} onChange={(event) => setName(event.target.value)} />
           </div>
           <div className="field">
-            <label>用户称呼</label>
-            <input value={userName} onChange={(event) => setUserName(event.target.value)} />
+            <label>你的称呼</label>
+            <input
+              value={userName}
+              onChange={(event) => setUserName(event.target.value)}
+              placeholder="对话中怎么称呼你？"
+            />
           </div>
         </div>
 
         <div className="section">
-          <h2>选择人设 Tag</h2>
+          <div className="tag-section-header">
+            <h2>人设 Tag</h2>
+            <span className="tag-count">{personaKeys.length} 已选</span>
+          </div>
           <div className="tag-list">
             {Object.entries(PERSONA_TAGS).map(([key, tag]) => (
-              <label className="tag-option" key={key}>
-                <input
-                  type="checkbox"
-                  checked={personaKeys.includes(key)}
-                  onChange={() => {
-                    setPersonaKeys((value) => toggle(value, key));
-                    track("persona_tag_selected", { tag: key });
-                  }}
-                />
-                <span>
-                  <span className="tag-title">{tag.title}</span>
-                  <span className="tag-desc">{tag.desc}</span>
-                </span>
-              </label>
+              <span
+                key={key}
+                className={`tag-pill ${personaKeys.includes(key) ? "selected" : ""}`}
+                onClick={() => {
+                  setPersonaKeys((value) => toggle(value, key));
+                  track("persona_tag_selected", { tag: key });
+                }}
+                title={tag.desc}
+              >
+                <span className="pill-icon">✓</span>
+                {tag.title}
+              </span>
             ))}
           </div>
         </div>
 
         <div className="section">
-          <h2>选择剧情 Tag</h2>
-          <p className="subtle">建议选 1 个作为开场剧情钩子。</p>
+          <div className="tag-section-header">
+            <h2>剧情 Tag</h2>
+            <span className="tag-count">{plotKeys.length} 已选</span>
+          </div>
+          <p className="subtle" style={{ marginBottom: 12 }}>建议选 1 个作为开场剧情钩子</p>
           <div className="tag-list">
             {Object.entries(PLOT_TAGS).map(([key, tag]) => (
-              <label className="tag-option" key={key}>
-                <input
-                  type="checkbox"
-                  checked={plotKeys.includes(key)}
-                  onChange={() => {
-                    setPlotKeys((value) => toggle(value, key));
-                    track("plot_tag_selected", { tag: key });
-                  }}
-                />
-                <span>
-                  <span className="tag-title">{tag.title}</span>
-                  <span className="tag-desc">{tag.desc}</span>
-                </span>
-              </label>
+              <span
+                key={key}
+                className={`tag-pill ${plotKeys.includes(key) ? "selected" : ""}`}
+                onClick={() => {
+                  setPlotKeys((value) => toggle(value, key));
+                  track("plot_tag_selected", { tag: key });
+                }}
+                title={tag.desc}
+              >
+                <span className="pill-icon">✓</span>
+                {tag.title}
+              </span>
             ))}
           </div>
         </div>
 
-        <div className="actions">
-          <button className="primary" onClick={generate}>生成角色卡</button>
-          <button onClick={saveCard}>保存</button>
+        <div className="actions" style={{ marginTop: 24 }}>
+          <button className="primary" onClick={generate}>✨ 生成角色卡</button>
+          <button onClick={saveCard}>💾 保存</button>
         </div>
-        <p className="subtle">{status}</p>
+
+        <div className="status-bar" style={{ marginTop: 14, marginBottom: 0 }}>
+          <span className="status-dot" />
+          <span>{status}</span>
+        </div>
       </aside>
 
       <main className="main">
-        <div className="panel">
+        <KitchenAnimation
+          isGenerating={generating}
+          characterName={card.name}
+          onComplete={() => {}}
+        />
+        <div className="panel" style={{ marginBottom: 0 }}>
           <div className="tabs">
-            <button className={`tab ${tab === "card" ? "active" : ""}`} onClick={() => setTab("card")}>角色卡</button>
-            <button className={`tab ${tab === "export" ? "active" : ""}`} onClick={() => setTab("export")}>导出</button>
-            <button className={`tab ${tab === "chat" ? "active" : ""}`} onClick={() => { setTab("chat"); track("chat_tab_opened", { card_name: card.name }); }}>试聊</button>
+            <button className={`tab ${tab === "card" ? "active" : ""}`} onClick={() => setTab("card")}>
+              📄 角色卡
+            </button>
+            <button className={`tab ${tab === "export" ? "active" : ""}`} onClick={() => setTab("export")}>
+              📤 导出
+            </button>
+            <button
+              className={`tab ${tab === "chat" ? "active" : ""}`}
+              onClick={() => {
+                setTab("chat");
+                track("chat_tab_opened", { card_name: card.name });
+              }}
+            >
+              💬 试聊
+            </button>
           </div>
           {tab === "chat" ? (
             <ChatPanel card={card} />
@@ -209,10 +252,10 @@ export function GeneratorClient({ userEmail, supabaseReady }: Props) {
             <>
               <div className="output">{output}</div>
               <div className="actions">
-                <button onClick={copy}>复制当前内容</button>
-                <button onClick={() => download("md")}>下载 Markdown</button>
-                <button onClick={() => download("json")}>下载 JSON</button>
-                <button onClick={() => download("doc")}>下载 Word</button>
+                <button onClick={copy}>📋 复制内容</button>
+                <button onClick={() => download("md")}>⬇ Markdown</button>
+                <button onClick={() => download("json")}>⬇ JSON</button>
+                <button onClick={() => download("doc")}>⬇ Word</button>
               </div>
             </>
           )}

@@ -54,83 +54,34 @@ export function ChatPanel({ card }: { card: GeneratedCard }) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ flex: 1, overflow: "auto", padding: "0 0 8px 0" }}>
+    <div className="chat-panel">
+      <div className="chat-messages">
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            style={{
-              marginBottom: 12,
-              textAlign: msg.role === "user" ? "right" : "left"
-            }}
-          >
-            <div
-              style={{
-                display: "inline-block",
-                maxWidth: "80%",
-                padding: "8px 14px",
-                borderRadius: 14,
-                background: msg.role === "user" ? "#3b82f6" : "#f1f5f9",
-                color: msg.role === "user" ? "#fff" : "#1e293b",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-                fontSize: 14,
-                lineHeight: 1.6
-              }}
-            >
-              {msg.content}
-            </div>
+          <div key={i} className={`chat-message ${msg.role}`}>
+            <span className="chat-bubble">{msg.content}</span>
           </div>
         ))}
         {sending && (
-          <div style={{ textAlign: "left", marginBottom: 12 }}>
-            <div
-              style={{
-                display: "inline-block",
-                padding: "8px 14px",
-                borderRadius: 14,
-                background: "#f1f5f9",
-                color: "#94a3b8",
-                fontSize: 14
-              }}
-            >
-              正在输入...
-            </div>
+          <div className="chat-message assistant">
+            <span className="chat-typing">
+              <span className="dot" />
+              <span className="dot" />
+              <span className="dot" />
+            </span>
           </div>
         )}
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ display: "flex", gap: 8, paddingTop: 8, borderTop: "1px solid #e2e8f0" }}>
+      <div className="chat-input-area">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder={`和${card.name}说点什么...`}
+          placeholder={`和 ${card.name} 说点什么…`}
           disabled={sending}
-          style={{
-            flex: 1,
-            padding: "10px 14px",
-            borderRadius: 10,
-            border: "1px solid #e2e8f0",
-            fontSize: 14,
-            outline: "none"
-          }}
         />
-        <button
-          onClick={send}
-          disabled={sending || !input.trim()}
-          style={{
-            padding: "10px 20px",
-            borderRadius: 10,
-            background: sending || !input.trim() ? "#cbd5e1" : "#3b82f6",
-            color: "#fff",
-            border: "none",
-            cursor: sending || !input.trim() ? "default" : "pointer",
-            fontSize: 14,
-            fontWeight: 500
-          }}
-        >
+        <button onClick={send} disabled={sending || !input.trim()}>
           发送
         </button>
       </div>
